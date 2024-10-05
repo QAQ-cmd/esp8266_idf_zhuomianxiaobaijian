@@ -7,10 +7,20 @@
 #### 硬件：
 
 1. 模块：esp8266
-2. 屏幕：ST7735S  深超光电液晶玻璃CT018TN01(1.77icn)
+2. 屏幕：ST7735S  (深超光电液晶玻璃CT018TN01 1.77icn)
 
 #### 连接：
-  ![连接](img/wave.png)  
+* Connection:  
+
+| Signal    | Oled   | ESP8266    |
+|-----------|--------|--------    |
+| 5.0V      | VCC    | VCC        |
+| SCLK      | CLK    | GPIO14(D5) |
+| D/C       | RS     | GPIO12(D6) |
+| MOSI      | SDA    | GPIO13(D7) |
+| RST       | RST    | GPIO15(D8) |
+| CS        | CS     | GND        |
+| GND       | GND    | GND        |
 
 #### 引用：
 
