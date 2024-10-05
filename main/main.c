@@ -4,7 +4,7 @@
 
 #include "smartconfig_main.h"
 #include "http_request_main.h"
-
+#include "sip_old.h"
 
 void app_main(void)
 {
@@ -21,8 +21,10 @@ void app_main(void)
     ESP_ERROR_CHECK(nvs_flash_init());
     // 开启WiFi智能配网线程
     initialise_wifi();
-    // 连接高德API
+    // 开启连接高德API线程
     http_main();
 
     printf("Hello Yangx  !\n");
+    // 屏幕显示
+    oled_main();
 }
