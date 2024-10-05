@@ -40,7 +40,14 @@ static uint8_t oled_dc_level = 0;
 #define SETYCMD 0x2B
 
 //开始写入GRAM reg
-#define SETXCMD 0x2C
+#define WRAMCMD 0x2C
+
+//画笔颜色
+#define POINT_COLOR 0x0000
+//背景色
+#define BACK_COLOR 0xFFFF 
+
+#define GREEN 0x07E0
 
 static esp_err_t oled_delay_ms(uint32_t time)
 {
@@ -85,6 +92,44 @@ static esp_err_t oled_writereg(uint8_t data0, uint8_t data)
     oled_write_data(data);
     return ESP_OK;
 }
+
+// Write an 16-bit data
+// static esp_err_t oled_w_data_16bit(uint16_t data)
+// {
+//     uint8_t x;
+//     uint32_t buf[2];
+//     spi_trans_t trans = {0};
+//     trans.mosi = buf;
+//     trans.bits.mosi = 2 * 8;
+
+//     for (x = 0; x < 2; x++) {
+//         buf[x] = data << 8 | data;
+//     }
+
+//     // SPI transfers 2 bytes at a time, transmits twice, increasing the screen refresh rate
+//     for (x = 0; x < 2; x++) {
+//         // 设置像素的起始位
+//         // oled_set_pos(0, x);
+//         oled_set_dc(1);
+//         spi_trans(HSPI_HOST, &trans);
+//         spi_trans(HSPI_HOST, &trans);
+//     }
+
+//     return ESP_OK;
+// }
+
+
+static esp_err_t oled_w_data_16bit(uint16_t data)
+{
+    uint32_t buf = data << 16; // 将16位数据左移，使其位于32位数据的高16位
+    spi_trans_t trans = {0};
+    trans.mosi = &buf;
+    trans.bits.mosi = 16; // 设置要传输的数据位数为16位
+    oled_set_dc(1); // 设置为数据传输模式
+    spi_trans(HSPI_HOST, &trans); // 通过SPI传输
+    return ESP_OK;
+}
+
 
 static esp_err_t oled_rst()
 {
@@ -197,13 +242,13 @@ static esp_err_t oled_init()
     return ESP_OK;
 }
 
-static esp_err_t oled_set_pos(uint8_t x_start, uint8_t y_start)
-{
-    oled_write_cmd(0xb0 + y_start);
-    oled_write_cmd(((x_start & 0xf0) >> 4) | 0x10);
-    oled_write_cmd((x_start & 0x0f) | 0x01);
-    return ESP_OK;
-}
+// static esp_err_t oled_set_pos(uint8_t x_start, uint8_t y_start)
+// {
+//     oled_write_cmd(0xb0 + y_start);
+//     oled_write_cmd(((x_start & 0xf0) >> 4) | 0x10);
+//     oled_write_cmd((x_start & 0x0f) | 0x01);
+//     return ESP_OK;
+// }
 
 // static esp_err_t oled_clear(uint8_t data)
 // {
@@ -252,26 +297,47 @@ static void IRAM_ATTR spi_event_callback(int event, void *arg)
     }
 }
 
-void oled_setwindows(uint8_t xStar, uint8_t yStar,uint8_t xEnd,uint8_t yEnd)
+static void oled_setwindows(uint8_t xStar, uint8_t yStar,uint8_t xEnd,uint8_t yEnd)
 {	
-	LCD_WR_REG(SETXCMD);	
-	LCD_WR_DATA(0x00);
-	LCD_WR_DATA(xStar);		
-	LCD_WR_DATA(0x00);
-	LCD_WR_DATA(xEnd);
+	oled_write_cmd(SETXCMD);	
+	oled_write_data(0x00);
+	oled_write_data(xStar);		
+	oled_write_data(0x00);
+	oled_write_data(xEnd);
 
-	LCD_WR_REG(SETYCMD);	
-	LCD_WR_DATA(0x00);
-	LCD_WR_DATA(yStar);		
-	LCD_WR_DATA(0x00);
-	LCD_WR_DATA(yEnd);
+	oled_write_cmd(SETYCMD);
+	oled_write_data(0x00);
+	oled_write_data(yStar);		
+	oled_write_data(0x00);
+	oled_write_data(yEnd);
 
-	LCD_WriteRAM_Prepare();	//开始写入GRAM				
+	oled_write_cmd(WRAMCMD);		        //开始写入GRAM				
 } 
+
+// static void oled_drawpoint(uint8_t x,uint8_t y)
+// {
+// 	oled_setwindows(x,y,x,y);               //设置光标位置
+// 	oled_w_data_16bit(POINT_COLOR); 	    
+// } 
+
+void oled_fill(uint8_t sx,uint8_t sy,uint8_t ex,uint8_t ey,uint16_t color)
+{  	
+	uint8_t i,j;			
+	uint8_t width=ex-sx+1; 		            //得到填充的宽度
+	uint8_t height=ey-sy+1;		            //高度
+	oled_setwindows(sx,sy,ex,ey);            //设置显示窗口
+	for( i=0 ; i<height ; i++ )
+	{
+		for( j=0 ; j<width ; j++ )
+		oled_w_data_16bit(color);	        //写入数据
+        ESP_LOGI(TAG, "yangx ----write data color\n");
+	}
+	oled_setwindows( 0 , 0 , LCD_W - 1 , LCD_H - 1 );//恢复窗口设置为全屏
+}
 
 void oled_main(void)
 {
-    uint8_t x = 0;
+    // uint8_t x = 0;
 
     ESP_LOGI(TAG, "init gpio ");
     gpio_config_t io_conf;
@@ -310,11 +376,15 @@ void oled_main(void)
     oled_init();
     // oled_clear(0x00);
     // 矩形方框
-
+    // 画点
+    // oled_drawpoint(40, 40);
+    // 纯色填充
+    oled_fill(0 ,0 ,LCD_W ,LCD_H ,GREEN);
 
     while (1) {
         // oled_clear(x);
+        // oled_drawpoint(x, 40);
         oled_delay_ms(1000);
-        x++;
+        // x++;
     }
 }
