@@ -94,41 +94,41 @@ static esp_err_t oled_writereg(uint8_t data0, uint8_t data)
 }
 
 // Write an 16-bit data
-// static esp_err_t oled_w_data_16bit(uint16_t data)
-// {
-//     uint8_t x;
-//     uint32_t buf[2];
-//     spi_trans_t trans = {0};
-//     trans.mosi = buf;
-//     trans.bits.mosi = 2 * 8;
-
-//     for (x = 0; x < 2; x++) {
-//         buf[x] = data << 8 | data;
-//     }
-
-//     // SPI transfers 2 bytes at a time, transmits twice, increasing the screen refresh rate
-//     for (x = 0; x < 2; x++) {
-//         // 设置像素的起始位
-//         // oled_set_pos(0, x);
-//         oled_set_dc(1);
-//         spi_trans(HSPI_HOST, &trans);
-//         spi_trans(HSPI_HOST, &trans);
-//     }
-
-//     return ESP_OK;
-// }
-
-
 static esp_err_t oled_w_data_16bit(uint16_t data)
 {
-    uint32_t buf = data << 16; // 将16位数据左移，使其位于32位数据的高16位
+    uint8_t x;
+    uint32_t buf[2];
     spi_trans_t trans = {0};
-    trans.mosi = &buf;
-    trans.bits.mosi = 16; // 设置要传输的数据位数为16位
-    oled_set_dc(1); // 设置为数据传输模式
-    spi_trans(HSPI_HOST, &trans); // 通过SPI传输
+    trans.mosi = buf;
+    trans.bits.mosi = 2 * 8;
+
+    for (x = 0; x < 2; x++) {
+        buf[x] = data >> 8 | data;
+    }
+
+    // SPI transfers 2 bytes at a time, transmits twice, increasing the screen refresh rate
+    for (x = 0; x < 2; x++) {
+        // 设置像素的起始位
+        // oled_set_pos(0, x);
+        oled_set_dc(1);
+        spi_trans(HSPI_HOST, &trans);
+        // spi_trans(HSPI_HOST, &trans);
+    }
+
     return ESP_OK;
 }
+
+
+// static esp_err_t oled_w_data_16bit(uint16_t data)
+// {
+//     uint32_t buf = data << 16; // 将16位数据左移，使其位于32位数据的高16位
+//     spi_trans_t trans = {0};
+//     trans.mosi = &buf;
+//     trans.bits.mosi = 16; // 设置要传输的数据位数为16位
+//     oled_set_dc(1); // 设置为数据传输模式
+//     spi_trans(HSPI_HOST, &trans); // 通过SPI传输
+//     return ESP_OK;
+// }
 
 
 static esp_err_t oled_rst()
@@ -332,6 +332,7 @@ void oled_fill(uint8_t sx,uint8_t sy,uint8_t ex,uint8_t ey,uint16_t color)
 		oled_w_data_16bit(color);	        //写入数据
         ESP_LOGI(TAG, "yangx ----write data color\n");
 	}
+
 	oled_setwindows( 0 , 0 , LCD_W - 1 , LCD_H - 1 );//恢复窗口设置为全屏
 }
 
@@ -367,7 +368,7 @@ void oled_main(void)
     // 8266 Only support half-duplex
     spi_config.mode = SPI_MASTER_MODE;
     // Set the SPI clock frequency division factor
-    spi_config.clk_div = SPI_10MHz_DIV;
+    spi_config.clk_div = SPI_2MHz_DIV;
     // Register SPI event callback function
     spi_config.event_cb = spi_event_callback;
     spi_init(HSPI_HOST, &spi_config);
@@ -381,10 +382,10 @@ void oled_main(void)
     // 纯色填充
     oled_fill(0 ,0 ,LCD_W ,LCD_H ,GREEN);
 
-    while (1) {
-        // oled_clear(x);
-        // oled_drawpoint(x, 40);
-        oled_delay_ms(1000);
-        // x++;
-    }
+    // while (1) {
+    //     // oled_clear(x);
+    //     // oled_drawpoint(x, 40);
+    //     oled_delay_ms(1000);
+    //     // x++;
+    // }
 }
