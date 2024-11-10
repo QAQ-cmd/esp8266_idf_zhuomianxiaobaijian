@@ -19,7 +19,7 @@
 | D/C       | RS     | GPIO12(D6) |
 | MOSI      | SDA    | GPIO13(D7) |
 | RST       | RST    | GPIO15(D8) |
-| CS        | CS     | GPIO3(D9) |
+| CS        | CS     | GPIO3(D9)  |
 | GND       | GND    | GND        |
 
 #### 引用：

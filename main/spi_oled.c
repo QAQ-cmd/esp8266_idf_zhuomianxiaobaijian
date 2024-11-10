@@ -248,7 +248,7 @@ void oled_fill(uint8_t sx,uint8_t sy,uint8_t ex,uint8_t ey,uint16_t color)
 	uint8_t width=ex-sx+1; 		            //得到填充的宽度
 	uint8_t height=ey-sy+1;		            //高度
 	// oled_setwindows(sx,sy,ex,ey);            //设置显示窗口
-	oled_setwindows( 0 , 0 , LCD_W - 1 , LCD_H - 1 );
+
 	for( i=0 ; i<width ; i++ )
 	{
 		for( j=0 ; j<height ; j++ )
@@ -256,6 +256,7 @@ void oled_fill(uint8_t sx,uint8_t sy,uint8_t ex,uint8_t ey,uint16_t color)
         oled_write_data_16Bit(color);	        //写入数据
         }
 	}
+	oled_setwindows( 0 , 0 , LCD_W - 1 , LCD_H - 1 );
 }
 
 void oled_main(void)
@@ -276,9 +277,12 @@ void oled_main(void)
     // 纯色填充
 	while(1)
 	{	
-		oled_fill(0 ,0 ,LCD_W ,LCD_H ,RED);oled_delay_ms(1000);	
-		oled_fill(0 ,0 ,LCD_W ,LCD_H ,GREEN);oled_delay_ms(1000);	
-		oled_fill(0 ,0 ,LCD_W ,LCD_H ,BLUE);oled_delay_ms(1000);
+		oled_fill(0 ,0 ,LCD_W ,LCD_H ,RED);
+        oled_delay_ms(100);	
+		oled_fill(0 ,0 ,LCD_W ,LCD_H ,GREEN);
+        oled_delay_ms(100);	
+		oled_fill(0 ,0 ,LCD_W ,LCD_H ,BLUE);
+        oled_delay_ms(100);
 	}
 
 
